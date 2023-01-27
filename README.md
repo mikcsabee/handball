@@ -8,8 +8,9 @@ These instructions will get you a copy of the project up and running on your loc
 ## Prerequisites
 What things you need to install the software and how to install them
 
-Node.js v18 or later
-Docker v20 or later or MySQL v8.0 or later
+Node.js v18 or later and MySQL v8.0 or later
+or
+Docker v20 or later
 
 ## Installing
 A step by step series of examples that tell you how to get a development env running
@@ -24,12 +25,12 @@ git clone https://github.com/mikcsabee/handball.git
 npm install
 ```
 
-3) Start the database
+3a) Start project with Docker
 ```
 docker-compose up
 ```
 
-3) Start the project
+3b) Start the project with local node (make sure that the `ormconfig.json` is correct)
 ```
 npm start
 ```
