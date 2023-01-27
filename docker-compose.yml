@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  db:
+    container_name: 'handball_db'
+    image: 'mysql:8.0-debian'
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'db'
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
+    ports:
+      - '3306:3306'
+    volumes:
+      - my-db:/var/lib/mysql
+      
+volumes:
+  my-db:

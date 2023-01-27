@@ -1,0 +1,9 @@
+export const POSITIONS: string[] = [
+  "GOALKEEPER",
+  "LEFT_BACK",
+  "CENTER_BACK",
+  "RIGHT_BACK",
+  "LEFT_WINGER",
+  "CENTER_WINGER",
+  "RIGHT_WINGER"
+];
