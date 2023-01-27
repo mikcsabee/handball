@@ -18,6 +18,7 @@ export class PlayerService extends BaseService<Player> {
       )
       .execute();
 
+    /* eslint-disable  @typescript-eslint/no-explicit-any */
     const players: any = {};
 
     for (const r of results) {
@@ -25,13 +26,13 @@ export class PlayerService extends BaseService<Player> {
       const player: Player = {
         id,
         name: r["player_name"],
-        active: r["player_active"],
+        active: r["player_active"]
       };
       const score: PlayerScore = {
         id: r["id"],
         position: r["position"],
         point: r["point"],
-        playerId: id,
+        playerId: id
       };
 
       const p = players[id];
