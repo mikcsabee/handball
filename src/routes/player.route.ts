@@ -1,9 +1,13 @@
 import { Router } from "express";
-import { PlayerScoreService, PlayerService } from "../services";
+import { PlayerService } from "../services";
 import use from "../utils/use";
 
 const router = Router();
 
+/**
+ * List all Player entites
+ * @todo: pagination would be nice
+ */
 router.get(
   "/player",
   use(async (req, res) => {
@@ -12,6 +16,10 @@ router.get(
     res.json(players);
   })
 );
+
+/**
+ * Create a player entiy
+ */
 router.post(
   "/player",
   use(async (req, res) => {
@@ -30,19 +38,24 @@ router.post(
   })
 );
 
+/**
+ * Fetch a player by id, plus fetch the scores
+ */
 router.get(
   "/player/:id",
   use(async (req, res) => {
     const playerService = new PlayerService();
-    const playerScoreService = new PlayerScoreService();
     const id = Number(req.params.id);
     const player = await playerService.findById(id);
-    const scores = await playerScoreService.findByPlayerId(id);
 
-    res.json({ ...player, scores });
+    res.json(player);
   })
 );
 
+/**
+ * Update a player.
+ * Name or the active field can be updated
+ */
 router.put(
   "/player/:id",
   use(async (req, res) => {

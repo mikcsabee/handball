@@ -6,7 +6,7 @@ services:
     image: 'mysql:8.0-debian'
     restart: always
     environment:
-      MYSQL_DATABASE: 'db'
+      MYSQL_DATABASE: 'handball'
       MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
     ports:
       - '3306:3306'

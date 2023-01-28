@@ -30,7 +30,7 @@ npm install
 docker-compose up
 ```
 
-3b) Start the project with local node (make sure that the `ormconfig.json` is correct)
+3b) Start the project with local node (make sure that the `ormconfig.json` is correct and the database is exists)
 ```
 npm start
 ```

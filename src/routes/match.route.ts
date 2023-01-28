@@ -1,10 +1,9 @@
 import { Router } from "express";
-import { Match, MatchPlayerTeam } from "../entity";
+import { Match } from "../entity";
 import {
   MatchService,
   PlayerService,
-  MatchPlayerTeamService,
-  TeamService
+  MatchPlayerTeamService
 } from "../services";
 import {
   assignPlayersToPosition,
@@ -16,18 +15,26 @@ import use from "../utils/use";
 
 const router = Router();
 
+/**
+ * List all Match entites
+ * @todo: pagination would be nice
+ */
 router.get(
   "/match",
   use(async (req, res) => {
-    const service = new MatchService();
-    const matches = await service.findAll();
+    const matchService = new MatchService();
+    const matches = await matchService.findAll();
     res.json(matches);
   })
 );
 
+/**
+ * Create a match entiy and the teams entities for the match
+ */
 router.post(
   "/match",
   use(async (req, res) => {
+    // Input validation: this should be done by Swagger or GraphQL
     if (typeof req.body.name !== "string" || req.body.name.length < 3) {
       throw new Error("Invalid input: name");
     }
@@ -40,6 +47,7 @@ router.post(
       throw new Error("Invalid input: numberOfPlayers");
     }
 
+    // Create the match
     const matchService = new MatchService();
     const match = await matchService.create({
       name: req.body.name,
@@ -51,6 +59,9 @@ router.post(
   })
 );
 
+/**
+ * Fetch a match by id, plus fetch the teams for the match and the players for each match
+ */
 router.get(
   "/match/:matchId",
   use(async (req, res) => {
@@ -62,51 +73,42 @@ router.get(
 
     const matchPlayerTeamService = new MatchPlayerTeamService();
     const matchService = new MatchService();
-    const playerService = new PlayerService();
-    const teamsService = new TeamService();
 
     const match = await matchService.findById(matchId);
     if (match) {
-      const teams = await teamsService.findByMatchId(match.id as number);
-      const teamA = teams.find((t) => t.type === "TeamA");
-      const teamB = teams.find((t) => t.type === "TeamB");
-      if (!teamA || !teamB) {
-        throw new Error("Invalid teams!");
+      /* eslint-disable  @typescript-eslint/no-explicit-any */
+      const teams: any[] = [];
+      if (match.teams) {
+        await Promise.all(
+          match.teams.map(async (team) => {
+            const players = await matchPlayerTeamService.findPlayersByTeamId(
+              team.id as number
+            );
+            teams.push({
+              ...team,
+              players
+            });
+          })
+        );
       }
 
-      const matchPlayersTeams = await matchPlayerTeamService.findByMatchId(
-        matchId
-      );
-
-      const playersAIds = matchPlayersTeams
-        .filter((m) => m.teamId === teamA.id)
-        .map((p) => p.playerId);
-      const playersBIds = matchPlayersTeams
-        .filter((m) => m.teamId === teamB.id)
-        .map((p) => p.playerId);
-      const playersA = await playerService.findByIds(playersAIds);
-      const playersB = await playerService.findByIds(playersBIds);
-
-      res.json({
-        ...match,
-        teams: [
-          { ...teamA, players: playersA },
-          { ...teamB, players: playersB }
-        ]
-      });
+      res.json({ ...match, teams });
     } else {
       res.sendStatus(404);
     }
   })
 );
 
+/**
+ * Add users to a match. The match mast not be finalised and the players must be active
+ * Align players into teams.
+ */
 router.put(
   "/match/:matchId/add",
   use(async (req, res) => {
     const matchPlayerTeamService = new MatchPlayerTeamService();
     const matchService = new MatchService();
     const playerService = new PlayerService();
-    const teamsService = new TeamService();
 
     const matchId = Number(req.params.matchId);
     const playerIds = req.body.playerIds;
@@ -115,7 +117,7 @@ router.put(
       throw new Error("Invalid matchId");
     }
     const match = await matchService.findById(matchId);
-    if (!match) {
+    if (!match || !match.teams) {
       throw new Error("Match doesn't exists!");
     }
     if (match.finalized) {
@@ -127,44 +129,78 @@ router.put(
     ) {
       throw new Error("Invalid list of playerIds!");
     }
-    const teams = await teamsService.findByMatchId(match.id as number);
-    const teamA = teams.find((t) => t.type === "TeamA");
-    const teamB = teams.find((t) => t.type === "TeamB");
+
+    // Identify the two teams
+    const teamA = match.teams.find((t) => t.type === "TeamA");
+    const teamB = match.teams.find((t) => t.type === "TeamB");
     if (!teamA || !teamB) {
       throw new Error("Invalid teams!");
     }
 
+    // fetch the players
     const players = await playerService.findByIds(playerIds);
+    if (players.length !== match.numberOfPlayers) {
+      throw new Error("Invalid number of players!");
+    }
 
+    /**
+     * create a key value pair of user ids and total number of poins like:
+     * pairs [
+     *   { key: 1, value: 14 },
+     *   { key: 2, value: 10 },
+     *   { key: 3, value: 6 },
+     *   { key: 4, value: 0 }
+     * ]
+     */
     const pairs = createSortedKeyValuePairs(players);
 
+    /**
+     * Split the key-value pair into two arrays (for teamA and teamB) like:
+     * [
+     *   { key: 1, value: 14 },
+     *   { key: 4, value: 0 }
+     * ],
+     * [
+     *   { key: 2, value: 10 },
+     *   { key: 3, value: 2 }
+     * ]
+     */
     const [teamAids, teamBids] = splitArray(pairs);
 
+    /**
+     * Create the MatchPlayersTeams records
+     */
     const team1 = assignPlayersToPosition(teamAids, players, match, teamA);
     const team2 = assignPlayersToPosition(teamBids, players, match, teamB);
 
-    const matchPlayersTeams: MatchPlayerTeam[] = [...team1, ...team2];
-
+    /**
+     * Write them to the database
+     */
     await Promise.all(
-      matchPlayersTeams.map((e) => matchPlayerTeamService.create(e))
+      [...team1, ...team2].map((e) => matchPlayerTeamService.create(e))
     );
 
+    /**
+     * Set the finalized flag to true and remove the teams. We don't need to
+     * save them too.
+     */
     match.finalized = true;
+    delete match.teams;
     await matchService.update(match.id as number, match);
 
-    const playersInTeamA = team1.map((t) => t.player);
-    const playersInTeamB = team2.map((t) => t.player);
-
+    /**
+     * Show result
+     */
     res.json({
       ...match,
       teams: [
         {
           ...teamA,
-          players: playersInTeamA
+          players: team1.map((t) => t.player)
         },
         {
           ...teamB,
-          players: playersInTeamB
+          players: team2.map((t) => t.player)
         }
       ]
     });

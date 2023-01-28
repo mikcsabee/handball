@@ -7,6 +7,10 @@ export class MatchService extends BaseService<Match> {
     super(Match);
   }
 
+  async findById(id: number): Promise<Match | null> {
+    return this.baseRepository.findOne({ where: { id }, relations: ["teams"] });
+  }
+
   async create(entity: Match): Promise<Match> {
     const match = await super.create(entity);
 

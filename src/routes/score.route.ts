@@ -10,6 +10,10 @@ import use from "../utils/use";
 
 const router = Router();
 
+/**
+ * Add score to a player and to a team for a match
+ * The player must be in a team of that match
+ */
 router.put(
   "/score",
   use(async (req, res) => {
@@ -23,6 +27,7 @@ router.put(
     const matchPlayerTeamService = new MatchPlayerTeamService();
     const teamService = new TeamService();
 
+    // Input validations and data selects. Most of it should be done by Swagger or GraphQL
     if (isNaN(point) || point <= 0) {
       throw new Error("Invalid point!");
     }
@@ -49,6 +54,9 @@ router.put(
       throw new Error("Invalid team!");
     }
 
+    /**
+     * Find the score for a player and position and add the point to it, or create it
+     */
     let playerScore = await playerScoreService.findByPlayerIdAndPosition(
       playerId,
       matchPlayerTeam.position
@@ -65,6 +73,9 @@ router.put(
       });
     }
 
+    /**
+     * Update the team point
+     */
     team.point += point;
     await teamService.update(team.id, team);
 

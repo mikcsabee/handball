@@ -7,7 +7,7 @@ import {
 } from "./array";
 
 describe("array utils", () => {
-  describe("", () => {
+  it("createSortedKeyValuePairs", () => {
     const players: Player[] = [
       {
         id: 1,
@@ -242,113 +242,111 @@ describe("array utils", () => {
     });
   });
 
-  describe("assignPlayersToPosition", () => {
-    it("scenario 1", () => {
-      const pairs = [
-        { key: 1, value: 10 },
-        { key: 4, value: 7 },
-        { key: 5, value: 6 },
-        { key: 7, value: 0 }
-      ];
-      const players: Player[] = [
-        {
-          id: 1,
-          name: "Arthur Dent",
-          active: true,
-          scores: [
-            {
-              position: POSITIONS[0],
-              point: 10,
-              playerId: 1
-            }
-          ]
-        },
-        {
-          id: 4,
-          name: "Ford Prefect",
-          active: true,
-          scores: [
-            {
-              position: POSITIONS[0],
-              point: 3,
-              playerId: 4
-            },
-            {
-              position: POSITIONS[1],
-              point: 2,
-              playerId: 4
-            }
-          ]
-        },
-        {
-          id: 5,
-          name: "Zaphod Beeblebrox",
-          active: true,
-          scores: [
-            {
-              position: POSITIONS[1],
-              point: 4,
-              playerId: 5
-            }
-          ]
-        },
-        {
-          id: 7,
-          name: "Marvin",
-          active: true
-        }
-      ];
-
-      const match: Match = {
+  it("assignPlayersToPosition", () => {
+    const pairs = [
+      { key: 1, value: 10 },
+      { key: 4, value: 7 },
+      { key: 5, value: 6 },
+      { key: 7, value: 0 }
+    ];
+    const players: Player[] = [
+      {
         id: 1,
-        name: "The Match",
-        createdAt: Date.now(),
-        finalized: false,
-        numberOfPlayers: 6
-      };
+        name: "Arthur Dent",
+        active: true,
+        scores: [
+          {
+            position: POSITIONS[0],
+            point: 10,
+            playerId: 1
+          }
+        ]
+      },
+      {
+        id: 4,
+        name: "Ford Prefect",
+        active: true,
+        scores: [
+          {
+            position: POSITIONS[0],
+            point: 3,
+            playerId: 4
+          },
+          {
+            position: POSITIONS[1],
+            point: 2,
+            playerId: 4
+          }
+        ]
+      },
+      {
+        id: 5,
+        name: "Zaphod Beeblebrox",
+        active: true,
+        scores: [
+          {
+            position: POSITIONS[1],
+            point: 4,
+            playerId: 5
+          }
+        ]
+      },
+      {
+        id: 7,
+        name: "Marvin",
+        active: true
+      }
+    ];
 
-      const team: Team = {
-        id: 1,
-        name: "TeamA",
-        point: 0,
-        type: "TeamA",
-        matchId: 1
-      };
+    const match: Match = {
+      id: 1,
+      name: "The Match",
+      createdAt: Date.now(),
+      finalized: false,
+      numberOfPlayers: 6
+    };
 
-      const matchPlayerTeams = assignPlayersToPosition(
-        pairs,
-        players,
-        match,
-        team
-      );
+    const team: Team = {
+      id: 1,
+      name: "TeamA",
+      point: 0,
+      type: "TeamA",
+      matchId: 1
+    };
 
-      expect(matchPlayerTeams[0]).toEqual(
-        expect.objectContaining({
-          playerId: 1,
-          position: POSITIONS[0]
-        })
-      );
+    const matchPlayerTeams = assignPlayersToPosition(
+      pairs,
+      players,
+      match,
+      team
+    );
 
-      expect(matchPlayerTeams[1]).toEqual(
-        expect.objectContaining({
-          playerId: 4,
-          position: POSITIONS[1]
-        })
-      );
+    expect(matchPlayerTeams[0]).toEqual(
+      expect.objectContaining({
+        playerId: 1,
+        position: POSITIONS[0]
+      })
+    );
 
-      expect(matchPlayerTeams[2]).toEqual(
-        expect.objectContaining({
-          playerId: 5,
-          position: POSITIONS[2]
-        })
-      );
+    expect(matchPlayerTeams[1]).toEqual(
+      expect.objectContaining({
+        playerId: 4,
+        position: POSITIONS[1]
+      })
+    );
 
-      expect(matchPlayerTeams[3]).toEqual(
-        expect.objectContaining({
-          playerId: 7,
-          position: POSITIONS[3]
-        })
-      );
-    });
+    expect(matchPlayerTeams[2]).toEqual(
+      expect.objectContaining({
+        playerId: 5,
+        position: POSITIONS[2]
+      })
+    );
+
+    expect(matchPlayerTeams[3]).toEqual(
+      expect.objectContaining({
+        playerId: 7,
+        position: POSITIONS[3]
+      })
+    );
   });
 });

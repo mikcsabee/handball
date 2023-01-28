@@ -1,6 +1,10 @@
 import { Repository } from "typeorm";
 import { dataSource } from "../db/datasources";
-import { MatchPlayerTeam } from "../entity";
+import { MatchPlayerTeam, Player } from "../entity";
+
+interface P extends Player {
+  position: string;
+}
 
 export class MatchPlayerTeamService {
   protected repository: Repository<MatchPlayerTeam> =
@@ -19,5 +23,17 @@ export class MatchPlayerTeamService {
 
   async findByMatchId(matchId: number): Promise<MatchPlayerTeam[]> {
     return this.repository.find({ where: { matchId } });
+  }
+
+  async findPlayersByTeamId(teamId: number): Promise<P[]> {
+    const matchPlayerTeam = await this.repository.find({
+      where: { teamId },
+      relations: ["player", "player.scores"]
+    });
+
+    return matchPlayerTeam.map((matchPlayerTeam) => ({
+      ...matchPlayerTeam.player,
+      position: matchPlayerTeam.position
+    }));
   }
 }
