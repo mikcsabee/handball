@@ -5,6 +5,7 @@
   "username": "root",
   "password": "",
   "database": "handball",
+  "testDatabase": "unit_test",
   "synchronize": true,
   "logging": false,
   "entities": ["src/entity/*.ts"]

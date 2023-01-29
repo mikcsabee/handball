@@ -1,20 +1,41 @@
-import { Match } from "../entity";
+import { Repository } from "typeorm";
+import { Match, Team } from "../entity";
 import { BaseService } from "./base.service";
 import { TeamService } from "./team.service";
 
+/**
+ * Class to handle the Match entity
+ * @extends BaseService
+ */
 export class MatchService extends BaseService<Match> {
-  public constructor() {
-    super(Match);
+  private teamRepository?: Repository<Team>;
+
+  public constructor(
+    repository?: Repository<Match>,
+    teamRepository?: Repository<Team>
+  ) {
+    super(Match, repository);
+    this.teamRepository = teamRepository;
   }
 
+  /**
+   * findById
+   * @param entity id
+   * @returns a single Match instance plus the teams relations
+   */
   async findById(id: number): Promise<Match | null> {
     return this.baseRepository.findOne({ where: { id }, relations: ["teams"] });
   }
 
+  /**
+   * Create the Match entity in the database. It will automatically creates two Teams entity for the Match
+   * @param entity the Match entity
+   * @returns the Match entity with id and the two teams
+   */
   async create(entity: Match): Promise<Match> {
     const match = await super.create(entity);
 
-    const teamService = new TeamService();
+    const teamService = new TeamService(this.teamRepository);
     const teamA = await teamService.create({
       name: teamService.generateTeamName(),
       point: 0,

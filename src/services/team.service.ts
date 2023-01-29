@@ -1,15 +1,30 @@
+import { Repository } from "typeorm";
 import { Team } from "../entity";
 import { BaseService } from "./base.service";
 
+/**
+ * Class to handle the Team entity
+ * @extends BaseService
+ */
 export class TeamService extends BaseService<Team> {
-  public constructor() {
-    super(Team);
+  public constructor(repository?: Repository<Team>) {
+    super(Team, repository);
   }
 
+  /**
+   * findByMatchId finds the teams for a Match
+   * @param matchId the Match id
+   * @returns an array of Teams
+   */
   async findByMatchId(matchId: number): Promise<Team[]> {
     return this.baseRepository.find({ where: { matchId } });
   }
 
+  /**
+   * Generates a name for a team
+   * @returns a team name
+   * @todo: add more words to the arrays
+   */
   generateTeamName(): string {
     const adjectives = [
       "Awesome",

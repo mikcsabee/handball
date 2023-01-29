@@ -16,3 +16,5 @@ dataSource.initialize().then(async () => {
     console.log(`Server running on ${port}`);
   });
 });
+
+export default app;

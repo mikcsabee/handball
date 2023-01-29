@@ -9,7 +9,7 @@ export class MatchPlayerTeam {
   @PrimaryColumn()
   playerId: number;
 
-  @PrimaryColumn()
+  @Column()
   teamId: number;
 
   @ManyToOne(() => Match, (match) => match.players)

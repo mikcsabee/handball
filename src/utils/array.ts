@@ -5,6 +5,17 @@ export interface KeyValuePair {
   value: number;
 }
 
+/**
+ * Create a sorted key value pair of user ids and total number of poins like:
+ * pairs [
+ *   { key: 1, value: 14 },
+ *   { key: 2, value: 10 },
+ *   { key: 3, value: 6 },
+ *   { key: 4, value: 0 }
+ * ]
+ * @param players array of players
+ * @returns array of key-value pairs
+ */
 export function createSortedKeyValuePairs(players: Player[]): KeyValuePair[] {
   const keyValuePairs: KeyValuePair[] = players
     .map((p) => {
@@ -20,6 +31,18 @@ export function createSortedKeyValuePairs(players: Player[]): KeyValuePair[] {
   return keyValuePairs;
 }
 
+/**
+ * Split the key-value pair into two arrays (for teamA and teamB) like:
+ * [
+ *   { key: 1, value: 14 },
+ *   { key: 4, value: 0 }
+ * ],
+ * [
+ *   { key: 2, value: 10 },
+ *   { key: 3, value: 2 }
+ * ]
+ * @param arr array of key-value pair
+ */
 export function splitArray(arr: KeyValuePair[]): KeyValuePair[][] {
   const subArray1: KeyValuePair[] = [];
   const subArray2: KeyValuePair[] = [];
@@ -43,14 +66,22 @@ export function splitArray(arr: KeyValuePair[]): KeyValuePair[][] {
   return [subArray1, subArray2];
 }
 
+/**
+ * Based on previous scores assign a player into an available position
+ * @param keyValues the sorted key-value pairs for the team
+ * @param players array of players it can be all players or just the players from the keyValues
+ * @param match the Match entity
+ * @param team the Team entity
+ * @returns an array of MatchPlayerTeam that can be inserted into the database
+ */
 export function assignPlayersToPosition(
   keyValues: KeyValuePair[],
   players: Player[],
   match: Match,
   team: Team
 ): MatchPlayerTeam[] {
-  const result: MatchPlayerTeam[] = [];
   let positions = [...POSITIONS];
+  const result: MatchPlayerTeam[] = [];
   for (const pair of keyValues) {
     const player = players.find((player) => player.id === pair.key);
     if (!player) {
@@ -84,4 +115,54 @@ export function assignPlayersToPosition(
   }
 
   return result;
+}
+
+/**
+ * Splits an array of players into two teams
+ * @param players the array of players
+ * @param match the match
+ * @param teamA the Team A
+ * @param teamB the Team B
+ * @returns two MatchPlayerTeam that can be inserted into the database
+ */
+export function assignPlayersToTeams(
+  players: Player[],
+  match: Match,
+  teamA: Team,
+  teamB: Team
+): {
+  team1: MatchPlayerTeam[];
+  team2: MatchPlayerTeam[];
+} {
+  /**
+   * create a key value pair of user ids and total number of poins like:
+   * pairs [
+   *   { key: 1, value: 14 },
+   *   { key: 2, value: 10 },
+   *   { key: 3, value: 6 },
+   *   { key: 4, value: 0 }
+   * ]
+   */
+  const pairs = createSortedKeyValuePairs(players);
+
+  /**
+   * Split the key-value pair into two arrays (for teamA and teamB) like:
+   * [
+   *   { key: 1, value: 14 },
+   *   { key: 4, value: 0 }
+   * ],
+   * [
+   *   { key: 2, value: 10 },
+   *   { key: 3, value: 2 }
+   * ]
+   */
+  const [teamAids, teamBids] = splitArray(pairs);
+
+  /**
+   * Create the MatchPlayersTeams records
+   */
+  const team1 = assignPlayersToPosition(teamAids, players, match, teamA);
+  const team2 = assignPlayersToPosition(teamBids, players, match, teamB);
+
+  return { team1, team2 };
 }

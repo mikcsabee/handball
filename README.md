@@ -38,11 +38,15 @@ npm start
 The application should now be running on http://localhost:3000
 
 4) Tests
+Before running the tests, it's requires a step. Either make sure that the `unit_test` is exists or re-write the `testDatabase` name to `handball` (in that case the unit tests will wipes the data) in the `ormconfig.json`.
 ```
 npm run test
 ```
 
 This will build the project and you can use the generated files in the build directory to run the application on a live system.
+
+## Database schema
+![Database schema](handball_db.drawio.png)
 
 ## Built With
  - Express - The web framework used

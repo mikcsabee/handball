@@ -1,6 +1,7 @@
 import { Match, Player, POSITIONS, Team } from "../entity";
 import {
   assignPlayersToPosition,
+  assignPlayersToTeams,
   createSortedKeyValuePairs,
   KeyValuePair,
   splitArray
@@ -348,5 +349,113 @@ describe("array utils", () => {
         position: POSITIONS[3]
       })
     );
+  });
+
+  it("assignPlayersToTeams", () => {
+    const players: Player[] = [
+      {
+        id: 1,
+        name: "Arthur Dent",
+        active: true,
+        scores: [
+          {
+            position: POSITIONS[0],
+            point: 10,
+            playerId: 1
+          }
+        ]
+      },
+      {
+        id: 2,
+        name: "Ford Prefect",
+        active: true,
+        scores: [
+          {
+            position: POSITIONS[0],
+            point: 3,
+            playerId: 4
+          },
+          {
+            position: POSITIONS[1],
+            point: 2,
+            playerId: 4
+          }
+        ]
+      },
+      {
+        id: 3,
+        name: "Zaphod Beeblebrox",
+        active: true,
+        scores: [
+          {
+            position: POSITIONS[1],
+            point: 4,
+            playerId: 5
+          }
+        ]
+      },
+      {
+        id: 4,
+        name: "Marvin",
+        active: true
+      }
+    ];
+
+    const match: Match = {
+      id: 1,
+      name: "The Match",
+      createdAt: Date.now(),
+      finalized: false,
+      numberOfPlayers: 6
+    };
+
+    const teamA: Team = {
+      id: 1,
+      name: "TeamA",
+      point: 0,
+      type: "TeamA",
+      matchId: 1
+    };
+
+    const teamB: Team = {
+      id: 2,
+      name: "TeamB",
+      point: 0,
+      type: "TeamB",
+      matchId: 1
+    };
+
+    // Act
+    const { team1, team2 } = assignPlayersToTeams(players, match, teamA, teamB);
+
+    // Assert
+    expect(team1).toEqual([
+      expect.objectContaining({
+        matchId: 1,
+        playerId: 1,
+        position: "GOALKEEPER",
+        teamId: 1
+      }),
+      expect.objectContaining({
+        matchId: 1,
+        playerId: 4,
+        position: "LEFT_BACK",
+        teamId: 1
+      })
+    ]);
+    expect(team2).toEqual([
+      expect.objectContaining({
+        matchId: 1,
+        playerId: 2,
+        position: "GOALKEEPER",
+        teamId: 2
+      }),
+      expect.objectContaining({
+        matchId: 1,
+        playerId: 3,
+        position: "LEFT_BACK",
+        teamId: 2
+      })
+    ]);
   });
 });
